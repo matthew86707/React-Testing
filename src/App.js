@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import './Timer.js'
 import 'bootstrap/dist/css/bootstrap.css'
+import 'animate.css/animate.css'
 var $ = require('jquery');
 
 class App extends Component {
@@ -12,17 +13,30 @@ class App extends Component {
       <div className="container" style={{backgroundColor: 'lightGrey'}}>
       <br/>
         <div className="row">
-    
-        <PriceDisplay currency="BTC"> </PriceDisplay>
+        <PriceDisplay currency="BTC" className="animated infinite flash"> </PriceDisplay>
         <PriceDisplay currency="ETH"> </PriceDisplay>
         <PriceDisplay currency="DOGE"> </PriceDisplay>
         <PriceDisplay currency="LTC"> </PriceDisplay>
         <PriceDisplay currency="DASH"> </PriceDisplay>
-      
       </div>
       </div>
       </div>
     );
+  }
+}
+
+class CurrencySupplyDisplay extends Component{
+  constructor(props){
+    super(props);
+    this.props = props;
+  }
+  render(){
+    return(
+      <div className="row">
+        {this.props.currency}
+        <i class="material-icons">keyboard_arrow_down</i>
+      </div>
+    )
   }
 }
 
@@ -33,7 +47,8 @@ class PriceDisplay extends Component{
       this.state = {
         currentPrice : 0,
         deltaPrice : 0,
-        trend : 'No Change'
+        trend : 'No Change',
+        isFirstUpdate : true
       };
       this.divStyle = {
        color: 'black',
@@ -49,27 +64,32 @@ class PriceDisplay extends Component{
       clearInterval(this.interval);
     }
     executeAjaxRequest(e){
+      var t = this;
       $.ajax({
         url: 'https://api.coinmarketcap.com/v1/ticker/',
         indexValue : {theObject : this},
         success: function(data){
           var index = 0;
           for(var i = 0; i < data.length; i++){
-            if(data[i].symbol === this.indexValue.theObject.props.currency){
+            if(data[i].symbol === t.props.currency){
               index = i;
               break;
             }
           }
-          var delPrice = data[index].price_usd - this.indexValue.theObject.state.currentPrice;
+          if(!t.state.isFirstUpdate){
+          var delPrice = data[index].price_usd - t.state.currentPrice;
           if(delPrice != 0){
-          this.indexValue.theObject.setState({deltaPrice : delPrice});
-        }
-          if(delPrice < 0){
-            this.indexValue.theObject.setState({trend : 'Negative Change'});
-          }else if(delPrice > 0){
-            this.indexValue.theObject.setState({trend : 'Positive Change'});
+          t.setState({deltaPrice : delPrice});
           }
-          this.indexValue.theObject.setState({currentPrice : data[index].price_usd});
+          if(delPrice < 0){
+            t.setState({trend : 'Negative Change'});
+          }else if(delPrice > 0){
+            t.setState({trend : 'Positive Change'});
+          }
+          }else{
+            t.setState({isFirstUpdate : false});
+          }
+          t.setState({currentPrice : data[index].price_usd});
         }
         ,
         dataType: 'json'
@@ -83,6 +103,7 @@ class PriceDisplay extends Component{
             <h2> {this.props.currency} </h2>
             <h4> {this.state.trend} </h4>
             <h4> ({this.state.deltaPrice}) </h4>
+            <CurrencySupplyDisplay currency={this.props.currency}> </CurrencySupplyDisplay>
             <br/>
             <div style={this.divStyle}>${this.state.currentPrice}</div>
           </div>
