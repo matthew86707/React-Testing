@@ -26,8 +26,6 @@ class App extends Component {
   }
 }
 
-
-
 class PriceDisplay extends Component{
   constructor(props){
     super(props);
@@ -43,7 +41,12 @@ class PriceDisplay extends Component{
        paddingTop : 70
       };
       this.executeAjaxRequest = this.executeAjaxRequest.bind(this);
-      setInterval(this.executeAjaxRequest, 8000);
+    }
+    componentDidMount() {
+      this.interval = setInterval(this.executeAjaxRequest, 8000);
+    } 
+    componentWillUnmount() {
+      clearInterval(this.interval);
     }
     executeAjaxRequest(e){
       $.ajax({
@@ -65,8 +68,6 @@ class PriceDisplay extends Component{
             this.indexValue.theObject.setState({trend : 'Negative Change'});
           }else if(delPrice > 0){
             this.indexValue.theObject.setState({trend : 'Positive Change'});
-          }else{
-            //this.indexValue.theObject.setState({trend : 'No Change'});
           }
           this.indexValue.theObject.setState({currentPrice : data[index].price_usd});
         }
@@ -77,16 +78,16 @@ class PriceDisplay extends Component{
     render(){
       return(
       <div className="col-md-4">
-      <div class="panel panel-default">
-  <div class="panel-body">
-      <h2> {this.props.currency} </h2>
-      <h4> {this.state.trend} </h4>
-      <h4> ({this.state.deltaPrice}) </h4>
-      <br/>
-      <div style={this.divStyle}>${this.state.currentPrice}</div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <h2> {this.props.currency} </h2>
+            <h4> {this.state.trend} </h4>
+            <h4> ({this.state.deltaPrice}) </h4>
+            <br/>
+            <div style={this.divStyle}>${this.state.currentPrice}</div>
+          </div>
+        </div>
       </div>
-      </div>
-</div>
       );
   }
 }
